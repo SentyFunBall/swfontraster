@@ -1,0 +1,6 @@
+/_build/libs/Lifeboatapi
+!/_build/_buildactions.lua
+_build/_simulator.lua
+_build/_buildactions.lua
+_build/_debug_simulator_log.txt
+.vscode
