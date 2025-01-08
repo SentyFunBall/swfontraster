@@ -68,14 +68,18 @@ local font = {
             height = 32,
             bound = {x=0, y=0, w=20, h=32}, --defined as pixels
             data = {
-                --x, y coordinates in pixel offset to the top left of the glyph
+                --x, y coordinates in pixel offset to the top left of the glyph. type 1 is line, type 2 is curve.
                 {
-                    --outer contour of "P"
-                    {0, 32}, {0, 0}, {20, 0}, {20, 13}, {5, 13}, {5, 32}
+                    --outer side
+                    {type=1, points={{6,0}, {0,0}, {0, 32}, {5,32}, {5, 13}}},
+                    {type=2, points={{5,0}, {20, 0}, {20, 7}}},
+                    {type=2, points={{20,7}, {20, 13}, {5, 13}}},
                 },
                 {
                     --inner contour (the "bowl" of "P")
-                    {5, 10}, {5, 3}, {16, 3}, {16, 10}
+                    {type=1, points={{5, 3}, {5, 10}}},
+                    {type=2, points={{5, 3}, {16, 3}, {16, 7}}},
+                    {type=2, points={{16, 6}, {16, 10}, {5, 10}}},
                 }
             }
         }
