@@ -73,12 +73,12 @@ local font = {
                 --if three points, it's a bezier curve
                 {
                     -- Outer contour (clockwise)
-                    {{6, 0}, {0, 0}},
-                    {{0, 0}, {0, 31}},
-                    {{0, 31}, {5, 31}},
-                    {{5, 31}, {5, 13}},
-                    {{5, 13}, {20, 13}, {20, 7}},
-                    {{20, 7}, {20, 0}, {6, 0}}
+                    {{6,0}, {20, 0}, {20, 7}},
+                    {{20, 7}, {20, 13}, {5, 13}},
+                    {{5, 13}, {5, 31}},
+                    {{5, 31}, {0, 31}},
+                    {{0, 31}, {0, 0}},
+                    {{0, 0}, {6, 0}}
                 },
                 {
                     -- Inner contour (counterclockwise)
@@ -102,7 +102,7 @@ function onDraw()
     --screen.drawText(100, 100, "P")
     time = os.clock()*1000
 
-    --render(glyph, x, y, [scale, {flipv, fliph, rotateRadians}])
+    --render(glyph, x, y, [scale, {flipv?, fliph?, rotateRadians, hollow?}])
     render("P", 0, 0, 1, {hollow = true})
     --[[render("P", 32, 32, 1)
     render("P", 64, 32, 1, {flipV = true})
@@ -113,7 +113,7 @@ function onDraw()
     render("P", 64, 100, 2)]]
     --SenFont.drawText("PPPP", 10, 10, 1)
 
-    --renderG(SenFont.font.glyph[1], 0, 0, 2)
+    --render("P", 0, 0, 2)
 
     time = os.clock()*1000 - time
     screen.drawText(200, 150, "Time: "..time)
