@@ -4,11 +4,10 @@ SenFont = {
     font = {};
 
     importFont = function(fontTbl)
-        font = fontTbl
+        SenFont.font = fontTbl
     end;
 
     drawGlyph = function(glyph, x, y, scale)
-        local offsetX, offsetY = x, y
         for _, contour in ipairs(glyph.data) do
             for _, segment in ipairs(contour) do
                 if segment.type == 1 then
@@ -17,14 +16,24 @@ SenFont = {
                     for i = 1, #points - 1 do
                         local p1, p2 = points[i], points[i + 1]
                         screen.drawLine(
-                            offsetX + p1[1] * scale, offsetY + p1[2] * scale,
-                            offsetX + p2[1] * scale, offsetY + p2[2] * scale
+                            x + p1[1] * scale, y + p1[2] * scale,
+                            x + p2[1] * scale, y + p2[2] * scale
                         )
+                        lines = lines + 1
                     end
                 else
                     -- Draw each curve segment
-                    SenFont.drawCurve(segment.points, scale, offsetX, offsetY)
+                    SenFont.drawCurve(segment.points, scale, x, y)
                 end
+            end
+        end
+    end;
+
+    fillContour = function(contour, scale, x, y)
+        for _, segment in ipairs(contour) do
+            local triangles = SenFont.utils.triangulateContour(segment.points)
+            for _, triangle in ipairs(triangles) do
+                SenFont.utils.drawTriangle(triangle[1], triangle[2], triangle[3], x, y, scale)
             end
         end
     end;
@@ -37,7 +46,7 @@ SenFont = {
             for _, contour in ipairs(glyphCopy.data) do
                 for i, segment in ipairs(contour) do
                     for i, point in ipairs(segment.points) do
-                        point[2] = glyphCopy.height - point[2]
+                        point[2] = glyphCopy.bound.h - point[2]
                     end
                 end
             end
@@ -46,7 +55,7 @@ SenFont = {
             for _, contour in ipairs(glyphCopy.data) do
                 for i, segment in ipairs(contour) do
                     for i, point in ipairs(segment.points) do
-                        point[1] = glyphCopy.width - point[1]
+                        point[1] = glyphCopy.bound.w - point[1]
                     end
                 end
             end
@@ -67,19 +76,6 @@ SenFont = {
         return glyphCopy
     end;
 
-    render = function(char, x, y, scale, options)
-        options = options or {}
-        scale = scale or 1
-    
-        local glyphIndex = font.cmap[char]
-        local glyphData = font.glyph[glyphIndex]
-        --local offsetX = x + (glyphData.width * scale) / 2 --center the glyph
-        
-        glyphData = SenFont.manipulateGlyph(glyphData, options)
-    
-        SenFont.drawGlyph(glyphData, x, y, scale)
-    end;
-
     drawCurve = function(points, scale, offsetX, offsetY)
         local p0, p1, p2 = points[1], points[2], points[3]
         local prevX, prevY =
@@ -87,13 +83,44 @@ SenFont = {
             offsetY + p0[2] * scale
 
         -- Number of segments for approximation (higher = smoother curve)
-        local segments = 5 * scale
+        local segments = math.ceil(3 * scale)
         for i = 1, segments do
             local t = i / segments
-            local x, y = SenFont.utils.evaluateQuadraticBezier(p0, p1, p2, t)
+            local x, y = SenFont.utils.bezierInterpoation(p0, p1, p2, t)
             x, y = offsetX + x * scale, offsetY + y * scale
             screen.drawLine(prevX, prevY, x, y)
+            lines = lines + 1
             prevX, prevY = x, y
+        end
+    end;
+
+    render = function(char, x, y, scale, options)
+        options = options or {}
+        scale = scale or 1
+    
+        local glyphIndex = SenFont.font.cmap[char]
+        local glyphData = SenFont.font.glyph[glyphIndex]
+        
+        glyphData = SenFont.manipulateGlyph(glyphData, options)
+    
+        if options.hollow then
+            SenFont.drawGlyph(glyphData, x, y, scale)
+        else
+            SenFont.renderGlyph(glyphData, x, y, scale)
+        end
+    end;
+
+    drawText = function(string, x, y, scale, options)
+        for i = 1, #string do
+            local char = string:sub(i, i)
+            SenFont.render(char, x, y, scale, options)
+            x = x + (SenFont.font.glyph[SenFont.font.cmap[char]].advance_width * scale) + (10 * scale) --add a little space between each character
+        end
+    end;
+
+    renderGlyph = function(glyph, x, y, scale)
+        for _, contour in ipairs(glyph.data) do
+            SenFont.fillContour(contour, scale, x, y)
         end
     end;
 }

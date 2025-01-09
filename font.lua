@@ -64,8 +64,7 @@ local font = {
     },
     glyph = {
         { --p
-            width = 20, --defined as pixels
-            height = 32,
+            advance_width = 20, --defined as pixels
             bound = {x=0, y=0, w=20, h=32}, --defined as pixels
             data = {
                 --x, y coordinates in pixel offset to the top left of the glyph. type 1 is line, type 2 is curve.
@@ -91,21 +90,26 @@ render = SenFont.render
 
 tick = 0
 function onDraw()
+    lines = 0
     tick = tick + 1
     screen.setColor(255,255,255)
     --screen.drawText(100, 100, "P")
     time = os.clock()*1000
 
     --render(glyph, x, y, [scale, {flipv, fliph, rotateRadians}])
-    render("P", 0, 0, 1)
+    --[[render("P", 0, 0, 1)
     render("P", 32, 32, 1)
     render("P", 64, 32, 1, {flipV = true})
     render("P", 96, 32, 1, {flipH = true})
     render("P", 128, 32, 1, {flipV = true, flipH = true})
     render("P", 200, 32, 1, {rotate = tick / math.pi / 2})
     render("P", 32, 100, 0.5)
-    render("P", 64, 100, 2)
+    render("P", 64, 100, 2)]]
+    --SenFont.drawText("PPPP", 10, 10, 1)
+
+    SenFont.renderGlyph(SenFont.font.glyph[1], 0, 0, 2)
 
     time = os.clock()*1000 - time
     screen.drawText(200, 150, "Time: "..time)
+    screen.drawText(200, 140, "Lines: "..lines)
 end
