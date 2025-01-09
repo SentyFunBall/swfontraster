@@ -4,3 +4,5 @@ _build/_simulator.lua
 _build/_buildactions.lua
 _build/_debug_simulator_log.txt
 .vscode
+_build/out
+_build/_build.lua

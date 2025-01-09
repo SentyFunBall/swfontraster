@@ -27,11 +27,38 @@ SenFont = {
         end
     end;
 
-    fillContour = function(contour, scale, x, y)
-        for _, segment in ipairs(contour) do
-            local triangles = SenFont.utils.triangulateContour(segment)
-            for _, triangle in ipairs(triangles) do
-                SenFont.utils.drawTriangle(triangle[1], triangle[2], triangle[3], x, y, scale)
+    fillGlyphSolid = function(glyph, scale, x, y)
+        --fill in the glyph with lines based on horizontal scanlines
+        for _, contour in ipairs(glyph.data) do
+            for i = 1, #contour - 1 do
+                local segment = contour[i]
+                local nextSegment = contour[i + 1]
+
+                local p0, p1, p2 = segment[1], segment[2], segment[3]
+                local nextP0, nextP1, nextP2 = nextSegment[1], nextSegment[2], nextSegment[3]
+                local prevX, prevY = x + p0[1] * scale, y + p0[2] * scale
+
+                -- Number of segments for approximation (higher = smoother curve)
+                local numSegments = math.ceil(20 * scale)
+                for j = 1, numSegments  do
+                    local t = j / numSegments
+                    local x1, y1 = SenFont.utils.bezierInterpoation(p0, p1, p2, t)
+                    local x2, y2 = SenFont.utils.bezierInterpoation(nextP0, nextP1, nextP2, t)
+                    x1, y1 = x1 * scale + x1, y1 * scale + y1
+
+                    if debugCol then
+                        screen.setColor(SenFont.utils.lerp(0, 255, t), SenFont.utils.lerp(255, 0, t), 0)
+                    end
+                    
+                    screen.drawTriangleF(
+                        prevX, prevY,
+                        x1, y1,
+                        x2, y2
+                    )
+
+                    lines = lines + 1
+                    prevX, prevY = x, y
+                end
             end
         end
     end;
@@ -81,9 +108,9 @@ SenFont = {
             offsetY + p0[2] * scale
 
         -- Number of segments for approximation (higher = smoother curve)
-        local segments = math.ceil(2 * scale)
-        for i = 1, segments do
-            local t = i / segments
+        local numSegments = math.ceil(2 * scale)
+        for i = 1, numSegments do
+            local t = i / numSegments
             local x, y = SenFont.utils.bezierInterpoation(p0, p1, p2, t)
             x, y = offsetX + x * scale, offsetY + y * scale
             if debugCol then
@@ -107,9 +134,20 @@ SenFont = {
         if options.hollow then
             SenFont.drawGlyph(glyphData, x, y, scale)
         else
+            --add in implied point to all line segments in the glyph
             for _, contour in ipairs(glyphData.data) do
-                SenFont.fillContour(contour, scale, x, y)
+                for i, segment in ipairs(contour) do
+                    if #segment == 2 then
+                        --line, add implied curve
+                        local p1, p2 = segment[1], segment[2]
+                        local midX, midY = SenFont.utils.lerp(p1[1], p2[1], 0.5), SenFont.utils.lerp(p1[2], p2[2], 0.5)
+                        table.insert(segment, 2, {midX, midY})
+                    end
+                end
             end
+            --for _, contour in ipairs(glyphData.data) do
+                SenFont.fillGlyphSolid(glyphData, scale, x, y)
+            --end
         end
     end;
 
@@ -118,12 +156,6 @@ SenFont = {
             local char = string:sub(i, i)
             SenFont.render(char, x, y, scale, options)
             x = x + (SenFont.font.glyph[SenFont.font.cmap[char]].advance_width * scale) + (10 * scale) --add a little space between each character
-        end
-    end;
-
-    renderGlyph = function(glyph, x, y, scale)
-        for _, contour in ipairs(glyph.data) do
-            SenFont.fillContour(contour, scale, x, y)
         end
     end;
 }

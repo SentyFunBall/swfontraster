@@ -95,6 +95,7 @@ SenFont.importFont(font)
 render = SenFont.render
 debugCol = true
 tick = 0
+done = false
 function onDraw()
     lines = 0
     tick = tick + 1
@@ -103,19 +104,33 @@ function onDraw()
     time = os.clock()*1000
 
     --render(glyph, x, y, [scale, {flipv?, fliph?, rotateRadians, hollow?}])
-    render("P", 0, 0, 1, {hollow = true})
+    --render("P", 0, 0, 11, {hollow = true})
     --[[render("P", 32, 32, 1)
     render("P", 64, 32, 1, {flipV = true})
     render("P", 96, 32, 1, {flipH = true})
     render("P", 128, 32, 1, {flipV = true, flipH = true})
     render("P", 200, 32, 1, {rotate = tick / math.pi / 2})
     render("P", 32, 100, 0.5)
-    render("P", 64, 100, 2)]]
-    --SenFont.drawText("PPPP", 10, 10, 1)
+    render("P", 64, 100, 2)
+    SenFont.drawText("PPPP", 10, 10, 1)]]
 
-    --render("P", 0, 0, 2)
+    render("P", 0, 0, 1)
 
     time = os.clock()*1000 - time
+    screen.drawText(200, 140, "Shapes: "..lines)
     screen.drawText(200, 150, "Time: "..time)
-    screen.drawText(200, 140, "Lines: "..lines)
+
+end
+
+function printTable(tbl, indent)
+    indent = indent or ""
+    
+    for key, value in pairs(tbl) do
+        if type(value) == "table" then
+            print(indent .. key .. ":")
+            printTable(value, indent .. "  ")
+        else
+            print(indent .. key, value)
+        end
+    end
 end
